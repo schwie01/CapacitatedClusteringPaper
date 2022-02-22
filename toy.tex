@@ -1,0 +1,150 @@
+\section{Preliminaries and Problem Definitions}
+
+Throughout this paper, we consider $d$-dimensional Euclidean spaces, i.e. the distance between two points $a$ and $b$ is defined as $\|a-b\| = \sqrt{\sum_{i=1}^d (a_i-b_i)^2}$. We use $[n]$ to the denote the positive integers from $1$ to $n$.
+The most general problem we consider is the \kzC clustering problem, where, given a point set $X$, a set of centers $S$, a positive integer $z$, and an assignment $s:X\rightarrow S$, we have
+$$\cost(X,S) := \sum_{p\in X} \|p-s(p)\|^z.$$
+Special cases include $z=1$, which corresponds to Euclidean $k$-median, and $z=2$, which corresponds to Euclidean $k$-means.
+For ease of presentation, we present most of our results for Euclidean \kMedian with several constraints, including the ones described above. Our algorithms and analysis can be extended to \kMeans and the more general \kzC problems. Details can be found in the supplementary material.
+We focus on assignments resulting from cardinality constraints, i.e. we are also given a mapping $w:C\rightarrow [|X|]$ with $\sum_{s_i\in S} w_i = |X|$ and the mapping $s$ is the mapping minimizing the cost such that the number of points served by $S_i$ is $w_i$. To emphasize that the mapping depends on $w$, we write $\cost(X,w,S)$.
+The set containing all feasible solutions $(S,w)$ is denoted by $\mathcal{S}$.
+
+Our aim is to compute coresets for the following evaluation queries.
+\paragraph{Coresets for Clustering with Cardinality Constraints}
+Let $X\subseteq \mathbb{R}^d$ be a point set. Let $S\subseteq \mathbb{R}^d$ be a set of at most $k$ centers and let $w:C\rightarrow [|X|]$ be a set of cardinalities such that $\sum_{s_i\in S} w_i = |X|$. We say that a weighted subset $D\subseteq X$ is a coreset for clustering with cardinality constraints if for every $S$ and every $w$, we have
+$$ |\cost(X,w,S) - \cost(D,w,S)| \leq \varepsilon\cdot \cost(X,w,S).$$
+
+We also need something like this:
+
+\begin{definition}\label{def:centroid-set}
+Let $X\subset \mathbb{R}^d$ be a set of points in $d$-dimensional Euclidean space and let $k$ and $z$ be two positive integers. Let $\eps > 0$ be a precision parameter. Given a set of centers $\greedy$, a set $\cand$ is an \emph{approximate centroid set} for $(k, z)$-clustering on $P$ if it satisfies the following property.
+
+For every set of $k$ centers $\calS \subset \mathbb{R}^d$, there exists $\tilde \calS \in \cand^k$ and a bijection $b: \calS \rightarrow \tilde \calS$ such that for all points $p \in P$ and all $s\in \calS$ with $\cost(p, s) \leq \left(\frac{4z}{\eps}\right)^z \cost(p, \greedy)$, it holds
+\[|\cost(p, s) - \cost(p, b(s))| \leq \varepsilon \left(\cost(p, s) + \cost(p, \greedy)\right).\] 
+\end{definition}
+
+This is slightly stronger than the definition from \cite{stoc}. I believe it is necessary to account for cardinalities.
+
+\section{Algorithm}
+To compute a coreset with cardinality constraints, we start with perform the following steps.
+\begin{enumerate}
+    \item Find a constant factor bicriteria approximation $A$\footnote{An $(\alpha,\beta)$ bicriteria approximation is a solution $A$ such that the cost of $A$ is at most a factor $\alpha$ times the cost of an optimal solution and the number of clusters in $A$ is at most $\beta\cdot k$}.
+    \item For every cluster $C_i$ with center $c_i$ of $A$, let $\Delta_i:=\frac{\cost(C_i,A)}{|C_i|}$ denote the average cost. Define the ring $R_{i,j}$ to be all the points at distance $[2^j\cdot \Delta_i,2^{j+1}\cdot \Delta_i)$. 
+    \item {\bf Near Points} We denote the set of points in $R_{i,j}$ with $j<2\log \varepsilon$ by $N_i$. We add $|C_i\cap N_{i}|$ copies of $c_i$ to the coreset. 
+    \item {\bf Ring Points} For each $R_{i,j}$ with $\log \varepsilon \leq j <2\log \varepsilon^{-1}$, we sample a set $\Omega(R_{i,j})$ of $\delta = \tilde{O}(\varepsilon^{-3} k \cdot \max(d,\varepsilon^{-2}))$ points uniformly at random, weighted by $\frac{|R_{i,j}\cap C_i|}{\delta}$.
+    \item {\bf Far Points} We define the set of far points in rings $R_{i,j}$ with $2\log \varepsilon^{-1}\leq j$ by $F_i$. We sample a set $\Omega(F_i)$ of $\delta = \tilde{O}(\varepsilon^{-3} k \cdot \max(d,\varepsilon^{-2}))$ points proportionate to their distance to $c_i$. Weigh each point inversely proportionate to the sampling probability. Finally, uniformly scale the weights up or down such that the sum of weights equals $|F_i|$. 
+\end{enumerate}
+
+Our aim is to prove the following result.
+\begin{theorem}
+For any set of of points $X\subset \mathbb{R}^d$, we can compute in time $...$ a coreset with cardinality constraints $D$ of size at most $...$
+\end{theorem}
+
+
+\section{Analysis of Near Points}
+
+Try to formulate the appropriate lemma here. We would like to argue that for any solution, the following inequality holds.
+\begin{eqnarray*}
+\left\vert\sum_{p\in N_i} (\cost(p,s(p)) - \cost(c_i,s(p))) \right\vert \\
+\leq \varepsilon \cdot (\cost(N_i,S) + \cost(C_i,S)).
+\end{eqnarray*}
+
+For the proof, you only have to use the triangle inequality (appropriately generalized if we want it to hold for $k$-means).
+
+
+\section{Analysis of Ring Points} 
+
+Outline:
+
+\begin{itemize}
+\item We would like to argue that for any fixed solution $S$ (i.e. fixed capacities and fixed set of centers) the cost is preserved up to a $(1\pm \varepsilon)$ factor with probability $1-\delta$ if we sample $\varepsilon^{-2-z}\log \delta^{-1}$ many points.
+\item Enumerate all possible choices of centers. 
+\item Enumerate all possible choices of clusters sizes. 
+\item Explain how to eliminate dependencies on the dimension.
+\end{itemize}
+
+We want to prove
+\begin{lemma}
+Let $D$ be subset of $\delta$ points, each chosen uniformly at random with replacement from $R_{i,j}$ and weighted by $\frac{|R_{i,j}|}{\delta}$. Then if $\delta > \alpha\cdot \varepsilon^{-3}\cdot (kd + \log 1/\pi)$, we have for all candidate solutions $(S,w)\in \mathcal{S}$ with probability at least $1-\pi$
+\begin{eqnarray*}
+|\cost(R_{i,j},S,w)-\cost(D,S,w)|\\
+\leq \varepsilon\cdot \left(\cost(R_{i,j},S,w) + \cost(R_{i,j},\{c_i\})\right)
+\end{eqnarray*}
+\end{lemma}
+
+
+The following notion will probably be useful.
+
+Let $\mathcal{S}$ be the set of all candidate solutions. Let $\mathcal{S}_{i,j}$ be the set of solutions defined as $\mathcal{S}_{i,j} = \{S'\subset S\in \mathcal{S}~|~\cost(s,c_i)\leq \varepsilon^{-O(1)}\cdot 2^j\cdot \Delta_i \wedge s\in S'\}$.
+
+\paragraph{Dealing with a single fixed solution}
+
+You want to prove an analogue (but perhaps slightly more general? need to check) of Lemma 13 from \cite{cohen2019fixed}. Essentially, we want to show that any fixed solution from $S_{i,j}$, the cost is preserved.
+To do this, you will need the run of the mill Bernstein's inequality type arguments that you can find either in \cite{cohen2019fixed}, or equivalently from \cite{stoc}.
+
+\begin{lemma}
+Let $D$ be subset of $\delta$ points, each chosen uniformly at random with replacement from $R_{i,j}$ and weighted by $\frac{|R_{i,j}|}{\delta}$. Then if $\delta > \alpha\cdot \varepsilon^{-3}\cdot \log 1/\pi$, we have for any candidate solutions $(S,w)\in \mathcal{S}$ with probability at least $1-\pi$
+\begin{eqnarray*}
+|\cost(R_{i,j},S,w)-\cost(D,S,w)|\\
+\leq \varepsilon\cdot \left(\cost(R_{i,j},S,w) + \cost(R_{i,j},\{c_i\})\right)
+\end{eqnarray*}
+\end{lemma}
+
+\paragraph{Discretization of centers}
+The main goal is to discretize the set of potential centers. Let $\mathcal{S}$ be the collection of solutions in our discretization. Here, we want to show that for \emph{any} possible solutions $S$ and \emph{all} points $p\in R_{i,j}$ and $s\in S$, there exists a solution $S'\in \mathcal{S}$ and a bijection $b:S\rightarrow S'$ such that if $\|q-s\| \leq \varepsilon^{-1} \cdot \|q-c_i\|$ for some $q\in R_{i,j}$ then
+$$ \left\vert \|p-s\| - \|p-b(s)\| \right\vert\leq \varepsilon\cdot \|p-c_i\|.  $$ 
+You do this by casting an $\varepsilon^{O(1)}\cdot 2^j\cdot \Delta_i$-net of the ball centered around $c_i$ with radius roughly (up to constant factors) $\varepsilon^{-1} 2^j\cdot \Delta_i$.
+
+Key Lemmas:
+
+
+\begin{lemma}[Find this in literature, don't have to prove it yourself]
+Let $B$ be the unit ball in $d$-dimensional Euclidean space.
+There exists an $\varepsilon$-net of size $\left(1+\frac{2}{\varepsilon}\right)^{-d}$
+\end{lemma}
+
+
+\begin{lemma}
+Let $R_{i,j}$ be the set of points at distance $[2^j\cdot \Delta_i,2^{j+1}\cdot \Delta_i)$ from $c_i$. Let $S$ be an arbitrary solution. Then there exists an approximate centroid set for $R_{i,j}$ of size $\varepsilon^{-\alpha\cdot kd}$, where $\alpha$ is an absolute constant.
+\end{lemma}
+
+\paragraph{Discretization of cardinalities}
+Here, we need two arguments. First, we argue that the centers that are at distance at least $\varepsilon^{O(z)}\cdot 2^j\cdot \Delta_i$, we preserve the cost anyway.
+For the centers that are close, we argue as follows. 
+\begin{enumerate}
+\item Centers with small cardinalities (less than $\varepsilon^{O(1)}\cdot \frac{|R_{i,j}|}{k}$ contribute only a negligible amount to the cost).
+\item Define an exponential sequence to the base of $(1+\beta)$, where $\beta = \varepsilon^{O(1)}$ (just $\varepsilon$ might be possible, the calculation will show).
+\item Let $Card:=\{\varepsilon^{O(1)}\cdot \frac{|R_{i,j}|}{k} \cdot (1+\beta)^t\|\}$ be the set of candidate cardinalities.
+\item Bound the number of distinct cardinalities (should be of the order $\beta^{-1}\log k/\varepsilon$.
+\item For a solution $S$ with cardinalities $w: S\rightarrow [|R_{i,j}|]$, we replacing the cardinalities with $w(s_i)$ with the largest cardinality in $Card$ that is smaller than $w(s_i)$. Let $\widehat{|R_{i,j}|}$ be the sum of the replacement cardinalities.
+\item Argue that a minimum cost assignment of any subset of $\widehat{|R_{i,j}|}$ points of $R_{i,j}$ to the new cardinalities preserves the cost (up to an appropriate term).
+\item Argue that the surplus $|R_{i,j}|-\widehat{|R_{i,j}|}$ can be assigned arbitrarily without it affecting the cost.
+\end{enumerate}
+
+Key Lemma:
+
+Define the set of integers.
+$Card:=\{\varepsilon^{O(1)}\cdot \frac{|R_{i,j}|}{k} \cdot (1+\beta)^t\|\}$.
+
+First, prove that approximating all solutions with weights from $Card$ (when necessary) is sufficient.
+\begin{lemma}
+Let $\mathcal{S}_{i,j,H}= \{S_{i,j}\times H~|~s\in S\cost(s,c_i)\leq \varepsilon^{O(1)}\cdot 2^j\cdot \Delta_i\}$ and let $\mathcal{S}_{i,j,F} =\{S_{i,j}\times \mathbb{N}~|~s\in S\cost(s,c_i)\geq \varepsilon^{O(1)}\cdot 2^j\cdot \Delta_i\} $. Define $\mathcal{S'}:=\mathcal{S}_{i,j,H}\times \mathcal{S}_{i,j,F}$
+If for every solution $(S',w')\in \mathcal{S'}$
+$$ |cost(R_{i,j},w',S') - \cost(D,w',S')|\leq \varepsilon\cdot \cost(R_{i,j},w,\calS),$$ then for every solution $(S,w)\in \mathcal{S}$ 
+$$|cost(R_{i,j},w',S') - \cost(D,w',S')|\leq \varepsilon\cdot \cost(R_{i,j},w,\calS).$$
+\end{lemma}
+
+Next, prove that approximating all solution solutions with weights can be done with few samples.
+
+\begin{lemma}
+Let $D$ be subset of $\delta$ points, each chosen uniformly at random with replacement from $R_{i,j}$ and weighted by $\frac{|R_{i,j}|}{\delta}$. Then if $\delta > \alpha\cdot \varepsilon^{-3}\cdot (kd + \log 1/\pi)$, we have for all candidate solutions $(S,w)\in \mathcal{S}_{i,j,H}$ with probability at least $1-\pi$
+\begin{eqnarray*}
+|\cost(R_{i,j},S,w)-\cost(D,S,w)|\\
+\leq \varepsilon\cdot \left(\cost(R_{i,j},S,w) + \cost(R_{i,j},\{c_i\})\right)
+\end{eqnarray*}
+\end{lemma}
+
+Finally conclude with a proof of the main lemma from this section.
+
+\paragraph{Removal of $d$}
+
+For $k$-means one can first use PCA. For the others, we have to apply terminal embeddings recursively. Details on how to do this are in \cite{stoc} and \cite{braverman2021coresets}.

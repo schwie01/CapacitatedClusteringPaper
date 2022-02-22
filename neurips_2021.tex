@@ -1,0 +1,154 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2021
+
+% ready for submission
+\usepackage{neurips_2021}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2021}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2021}
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2021}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{xspace}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{paralist}
+\usepackage[page]{appendix}
+
+\hypersetup{colorlinks=true,allcolors=blue}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{question}[theorem]{Question}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{fact}[theorem]{Fact}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}[section]
+
+\newcommand{\ignore}[1]{}
+
+\newcommand{\ProblemName}[1]{\textsc{#1}}
+\newcommand{\kzC}{\ProblemName{$(k, z)$-Clustering}\xspace}
+\newcommand{\kMedian}{\ProblemName{$k$-Median}\xspace}
+\newcommand{\kMeans}{\ProblemName{$k$-Means}\xspace}
+\newcommand{\kMeanspp}{\ProblemName{$k$-Means++}\xspace}
+\newcommand{\kCenter}{\ProblemName{$k$-Center}\xspace}
+
+\newcommand{\RR}{{\mathbb R}}
+
+\DeclareMathOperator{\E}{\mathbb{E}}
+
+\DeclareMathOperator{\sdim}{sdim}
+\DeclareMathOperator{\dist}{dist}
+\DeclareMathOperator{\cost}{cost}
+\DeclareMathOperator{\poly}{poly}
+\DeclareMathOperator{\tw}{tw}
+\DeclareMathOperator{\pw}{pw}
+\DeclareMathOperator{\proj}{proj}
+\DeclareMathOperator{\OPT}{OPT}
+\DeclareMathOperator{\Diam}{Diam}
+
+\DeclareMathOperator{\NN}{NN}
+\newcommand{\minn}[1]{\min\{{#1}\}}
+\newcommand{\maxx}[1]{\max\{{#1}\}}
+\providecommand{\set}[1]{{\{#1\}}}
+
+\def\compactify{\itemsep=0pt \topsep=0pt \partopsep=0pt \parsep=0pt} 
+
+\newcommand{\colnote}[3]{\textcolor{#1}{$\ll$\textsf{#2}$\gg$\marginpar{\tiny\bf #3}}}
+\newcommand{\shaofeng}[1]{\colnote{purple}{#1--Shaofeng}{SJ}}
+\newcommand{\rnote}[1]{\colnote{blue}{#1--Robi}{RK}}
+\newcommand{\Xuan}[1]{\colnote{red}{#1--Xuan}{XW}}
+
+\title{Coresets for Clustering with Missing Values}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+\author{%
+  David S.~Hippocampus\thanks{Use footnote for providing further information
+    about author (webpage, alternative address)---\emph{not} for acknowledging
+    funding agencies.} \\
+  Department of Computer Science\\
+  Cranberry-Lemon University\\
+  Pittsburgh, PA 15213 \\
+  \texttt{hippo@cs.cranberry-lemon.edu} \\
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+\begin{document}
+
+\maketitle
+\input{abstract.tex}
+\input{intro.tex}
+\input{prelim.tex}
+%\input{coreset.tex}
+\input{coreset_short.tex}
+\input{exp.tex}
+
+\bibliographystyle{alphaurl}
+\bibliography{refs}
+\input{checklist.tex}
+
+\newpage
+
+\begin{appendices}
+  \input{coreset.tex}
+\end{appendices}
+
+\end{document}

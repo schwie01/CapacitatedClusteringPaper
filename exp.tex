@@ -1,0 +1,109 @@
+\section{Experimental evaluations}
+%some intro
+While our algorithms work for a variety of capacity constraints, the most common implementations focus on fair clustering. Thus we focus on fair clustering in our experimental evaluation. 
+
+\paragraph{Algorithms}
+We used an implementation of our algorithm, as well as the algorithms studied in \cite{HuangJV19}. These algorithms are (1) their $k^3 \varepsilon^{-d-1}$ coreset algorithm, henceforth denoted by $HJV$, (2) uniform sampling, and (3) a variant of BICO \cite{FGSSS13} which was adapted for fair clustering by \cite{SSS19}, henceforth denoted BICO.
+
+For our algorithm, we used $k$-means++ \cite{ArV07} to find an initial (bicriteria) approximation with $2k$ centers with 10 repetitions.
+The sampling algorithm received a budget matching the calculated coreset for HJV, split  uniformly across all color groups. Each cluster and ring got a point budget proportional to the cluster and ring in the approximate solution. Budgets below 0 were rounded up to have representatives for each cluster.
+
+In the algorithm we need to parameterize $\epsilon$ properly such that the ring sizes fit the wanted coreset size. We do this by constructing an initial coreset and using the emperic distortion to calculate the ring sizes for the coreset.  
+
+\paragraph{Data Sets}
+The datasets used are \textbf{Adult} \cite{adult_dataset}, \textbf{bank} \cite{MORO201422}, \textbf{Census1990} \cite{Census1990_dataset} by subsampling uniformly, \textbf{Diabetes} \cite{Diabetes_Dataset} with one or multiple sensitive features. For each of the datasets we use the numerical features.
+\begin{table}[h]
+\centering
+\caption{Protected groups}
+\begin{tabular}{|c|c|c|}
+\hline
+Dataset & protected features & groups\\
+\hline
+    Adult & Sex,Marital-status & 14 \\
+    Bank & Marital, Default & 12 \\
+    Census & Sex, Marital & 10 \\
+    Diabetes & Gender, Age & 20 \\
+\hline
+\end{tabular}
+\end{table}
+
+Additionally, we also considered the normalized variants, initially proposed by \cite{HuangJV19}. Here, every feature is scaled by the entry of largest magnitude. This improves the performance of uniform sampling algorithm and thus we have a wider range of competing algorithms.
+
+\paragraph{Setup}
+The experiments are run on 4-core laptop CPU with 16GB ram. We implement our algorithm in Java and compare it to the Java implementation of HJV\cite{HuangJV19}, C++ implementation of BICO and Java implementation of uniform sampling. For solving LPs we use IBM CPLEX \cite{CPLEX}.
+
+%What/how?
+%The datasets used are \textit{Adult}\cite{adult_dataset}(d=6, $std_{min}=2.5$,$std_{max}=1.9\cdot10^5)$, \textit{bank}\cite{MORO201422}(d=10, $std_{min}=0.6$,$std_{max}=260)$, \textit{Census1990}\cite{Census1990_dataset}(d=13, $std_{min}=0.2$,$std_{max}=4)$, \textit{Diabetes}\cite{Diabetes_Dataset}(d=8, $std_{min}=0.9$,$std_{max}=10.7)$ with one or multiple sensitive features.
+
+\paragraph{Aims and Method of Evaluation}
+We seek to measure that the distortion introduced by our coreset for several solutions is competitive compared to HJV. Unfortunately, measuring the distortion analytically is a challenging task, so we use heuristics to get a lower bound on the distortion for every algorithm.
+
+The experimental setup is based on the code by \cite{HuangJV19}, where we evaluate our importance sampling algorithm in the same manner as they evaluate the uniform sampling algorithm.
+
+Following the definition of \cite{HuangJV19} we have a fair clustering of l features if $C=\{C_1...C_k\}$ is a k-partitioning of the dataset $X$, satisfying that $|C_i\cap P_j|=F_{ij}$ $\forall i\in [k], j\in [l]$. 
+
+We draw $500$ independent random samples of (F,C), F is the assignment constraint for each of the groups, and C being random candidate centers. C is picked uniformly among the points of the original dataset and F is a random partition of the colors across centers. The fair assignment problem is formulated as a LP as in \cite{HuangJV19}. We calculate the distortion as   $|\frac{Cost(S,F,C)}{Cost(X,F,C)}-1|$ and report the maximum. We explore results on both normalized and original data, the latter of which can be seen in the appendix. 
+
+We report the distortion of the coresets, the construction time of our sampling method and HJV, the average time to evaluate the objective on the original data and the coreset by our algorithm. We omit construction time of BICO and uniform as they have already been explored in \cite{HuangJV19}.  
+\paragraph{Results}
+Table \ref{tab:result_means} summarize the results of the experimental evaluation. We see that for all datasets the sampling algorithm matches or improves the distortion by HJV and BICO. For larger coreset sizes our algorithm outperforms uniform-sampling, whereas the performance for small coresets are comparable in some cases such as on the adult and diabetes datasets. 
+
+Compared to BICO and HJV, our algorithm generally performs better on normalized data sets, despite the data not being particularly high dimensional. Uniform sampling performs very poorly compared to all other methods on Adult and Bank, but remains competitive on Diabetes and Census.
+Uniform sampling performs competitively with our solution on smaller coreset sizes. In these cases, we believe it is more important to draw points from every clustering. Since the clusterings we construct have similar size, our sampling does not yet have an opportunity to distinguish itself from uniform sampling in a meaningful way. 
+
+Since our coresets are always constructed in linear time, the running time of our algorithm does not depend particularly on the size of designated coreset. Contrarywise, HJV exhibits a significantly higher dependency on the input size, making it less scalable.
+
+
+
+\begin{table*}[h]
+    \centering
+    \caption{Maximal distortions for each coreset, construction time and time to do the fair assignment step}
+    \begin{tabular}{@{}c c|c|c|c|c|c|c|c|c}
+     & Size & Our & HJV & BICO & Uni & $T_{Our}$ & T$_{HJV}$ & $T_{Asssign-OPT}$ & $T_{Assign-Our}$\\
+    \hline
+    \multirow{9}*{\rotatebox{90}{Adult}}
+      &     15942 &   0.72\% &   3.22\% &   1.47\% &  19.81\% &      1137 &     20933 &   1526.3 &      366.3 \\
+      &      9268 &   1.85\% &   6.54\% &   3.87\% &   5.13\% &      1219 &      9511 &        - &      139.8 \\
+      &      4051 &   2.23\% &  10.32\% &   7.87\% &   2.89\% &      1233 &      6788 &        - &       68.7 \\
+      &      2311 &   3.57\% &  13.35\% &  14.77\% &   3.21\% &      1218 &      3212 &        - &       33.3 \\
+      &      1111 &   4.30\% &  17.80\% &  22.69\% &   4.92\% &       989 &      2327 &        - &       21.8 \\
+      &       819 &   7.15\% &  19.59\% &  24.68\% &   5.05\% &      1191 &      1456 &        - &        7.8 \\
+      &       728 &  10.92\% &  19.68\% &  24.38\% &   8.73\% &       895 &      1386 &        - &        6.1 \\
+      &       607 &  13.55\% &  30.13\% &  28.47\% &   7.08\% &      1236 &      1333 &        - &        5.8 \\
+      &       486 &  12.22\% &  35.51\% &  34.65\% &   6.36\% &      1056 &      1338 &        - &        4.1 \\
+      \hline
+  
+    \multirow{7}*{\rotatebox{90}{Diabetes}}
+      &      6514 &   2.26\% &  12.44\% &  12.64\% &   2.81\% &      3707 &     10028 &   4788.0 &       86.0 \\
+      &      2819 &   3.04\% &  17.20\% &  21.12\% &   4.48\% &      3826 &      5289 &        - &       35.0 \\
+      &      1390 &   2.50\% &  21.72\% &  28.33\% &   5.43\% &      7261 &      2726 &        - &       18.3 \\
+      &       831 &   6.83\% &  22.96\% &  32.69\% &   8.41\% &      4644 &      1969 &        - &        6.9 \\
+      &       477 &  15.12\% &  26.50\% &  39.45\% &   7.85\% &      3843 &      1045 &        - &        3.8 \\
+      &       461 &  17.63\% &  26.41\% &  41.37\% &   6.73\% &      4460 &      1117 &        - &        3.5 \\
+      &       453 &  13.02\% &  26.32\% &  40.57\% &   9.23\% &      3770 &      1153 &        - &        3.6 \\
+      \hline
+    \multirow{9}*{\rotatebox{90}{Census}}
+      &      5276 &   1.36\% &   4.63\% &   3.76\% &   3.16\% &      1790 &     19818 &   2428.3 &       80.1 \\
+      &      2011 &   1.80\% &   9.05\% &   7.05\% &   2.93\% &      1851 &      6960 &        - &       33.3 \\
+      &       845 &   4.00\% &  12.62\% &  17.66\% &   4.46\% &      1693 &      3985 &        - &        6.6 \\
+      &       472 &   3.38\% &  20.01\% &  21.02\% &   9.91\% &      1862 &      2056 &        - &        3.5 \\
+      &       275 &   8.68\% &  26.66\% &  28.52\% &  10.38\% &      1760 &       814 &        - &        2.5 \\
+      &       235 &   6.39\% &  26.85\% &  28.76\% &  14.15\% &      1722 &       992 &        - &        2.0 \\
+      &       181 &  11.59\% &  40.63\% &  32.01\% &  11.61\% &      1668 &       678 &        - &        2.3 \\
+      &       161 &  15.04\% &  40.65\% &  34.15\% &  10.65\% &      2168 &       641 &        - &        1.7 \\
+      &       149 &  13.95\% &  39.99\% &  35.72\% &  14.20\% &      2440 &       801 &        - &        1.7 \\
+     \hline
+    \multirow{9}*{\rotatebox{90}{Bank}}
+      &       245 &  4.91\% &  11.44\% &  11.12\% &  42.16\% &       631 &       803 &   1114.7 &        2.7 \\
+      &       205 &  3.45\% &  10.99\% &  12.45\% &  25.49\% &       422 &       724 &        - &        2.2 \\
+      &       184 &  4.48\% &  12.03\% &  16.08\% &  49.18\% &       579 &       712 &        - &        2.3 \\
+      &       176 &  5.82\% &  10.90\% &  16.51\% &  52.79\% &       636 &       485 &        - &        4.3 \\
+      &       162 &  6.18\% &  11.02\% &  21.51\% &  65.09\% &       756 &       953 &        - &        2.2 \\
+      &       143 &  6.26\% &  10.85\% &  17.86\% &  41.38\% &       576 &      1250 &        - &        2.6 \\
+      &       158 &  5.21\% &  10.83\% &  29.61\% &  27.06\% &      1012 &      1026 &        - &        2.0 \\
+      &       143 &  5.97\% &  10.77\% &  15.69\% &  55.09\% &       661 &       736 &        - &        2.0 \\
+      &       142 &  5.62\% &  10.28\% &  18.74\% &  91.04\% &       814 &       838 &        - &        1.5 \\
+     \hline
+     \end{tabular}
+    \label{tab:result_means}
+\end{table*}

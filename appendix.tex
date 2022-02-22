@@ -1,0 +1,415 @@
+\section{Appendix}
+We study Euclidean capacitated \kMeans and the more general capacitated \kzC problem. 
+
+We allow both client points and centers to have positive weights. Let $X$ denote a client set and $C$ denote a center set. For a client point $x\in X$, the weight $w_X(x)$ denotes its demand (multiplicity) and for a center $c\in C$, the weight $w_C(c)$ denotes its capacity. When it is not ambiguous, we simply use $w(x)$ or $w(c)$ in short of $w_X(x)$ or $w_C(c)$.
+
+For a (weighted) client set $X\subseteq \mathbb{R}^d$ and a (weighted) $k$-center $C\subseteq\mathbb{R}^d,|C|=k$, we define the capacitated \kMeans cost of $X$ on $C$ by using the following network flow model.
+
+\paragraph{Cost Function} The flow network $G$ contains the following elements. Let $S$ and $T$ denote the source and sink and $X\cup C$ are other nodes in $G$. For each $x\in X$, there is an arc from $S$ to $x$ with capacity $w(x)$ and cost $0$ per unit. For each $c\in C$,  there is an arc from $c$ to $T$ with capacity $w(c)$ and cost $0$ per unit. For each pair $(x,c)\in X\times C$, there is an arc from $x$ to $x$ with capacity $\infty$ and cost $\|x-c\|_2^2$ per unit. We let $\cost(X,C)$ denote the cost of the min-cost max-flow of $G$.
+
+We remark that the above cost function matches the natural definition of capacitated \kMeans when the total weight of $X$ and $C$ are equal, namely $w(X)=w(C)$.
+
+
+\paragraph{Coreset} For $D\subseteq X$, $D$ is called an $\epsilon$-coreset of $X$ for capacitated \kMeans problem if
+(i) $w(D)=w(X)$, and
+    (ii) for every $C\subset \mathbb{R}^d$ such that $|C|=k$ and $w(C)=w(X)$, $$|\cost(X,C)-\cost(D,C)|\leq \epsilon \cost(X,C).$$
+
+
+\ignore{
+We study \kMedian with capacitated centers in Euclidean space. A capacitated center is a center $c$ with capacity $f$ which denotes the maximum number of clients that $c$ can serve. We have $(c,f)\in \mathbb{R}^d\times [n]$ where $n$ is the number of clients.
+
+For a set of clients $P$ where $|P|=n$ and a set of $k$ capacitated centers $C=\{(c_1,f_1),\cdots,(c_k,f_k)\}\subseteq \mathbb{R}^d\times[n]$, a valid assignment of $P$ to $C$ is map $\phi:P\rightarrow [k]$ such that $|\phi^{-1}(i)|\leq f_i$ for any $i\in [k]$. The cost of the assignment is defined as
+$\mathrm{cost}(P,C,\phi):=\sum_{p\in P} \|p-\phi(p)\|$. The cost of $C$ is defined as $$
+\mathrm{cost}(P,C):=\min_{\phi} \mathrm{cost}(P,C,\phi),
+$$
+i.e. the minimum cost over all valid assignments.
+\begin{definition}
+An instance of Euclidean capaciated \kMedian clustering $(P,\mathbb{F})$ denote a set of clients $P\subseteq \mathbb{R}^d$ and a candidate set of capacitated center $\mathbb{F}\subseteq \mathbb{R}^d\times [n]$ where $n=|P|$. The objective of capaciated \kMedian is to find the $k$-set $C\subseteq \mathbb{F}$ that minimizes $\mathrm{cost}(P,C)$.
+\end{definition}
+}
+
+\subsection{Preliminaries}
+\begin{lemma}[Bernstein's Inequality]\label{lemma:Bernstein}
+Let $X_1,...,X_m$ be $m$ independent random variables. Suppose $\sum_{i=1}^m E[X_i^2]=V$ and $\max_{i\in[m]} |X_i|\leq M$ almost surely. Then for every $t>0$,
+$$
+\mathbb{P}\bigg(\big|\sum_{i=1}^m X_i-\sum_{i=1}^m E[X_i]\big|>t\bigg)\leq \exp\bigg\{-\frac{t^2}{O(V+Mt)}\bigg\}
+$$
+\end{lemma}
+
+\begin{lemma}[Generalized Triangle Inequality] \label{lemma:GTI}
+Let $a,b\geq 0,\epsilon>0$ and $z\geq 1$ then $$
+(a+b)^z\leq (1+\epsilon)^{z-1}a^z+(1+\frac{1}{\epsilon})^{z-1} b^z
+$$ and $$
+|a^z-b^z|\leq \epsilon \cdot a^z+\big(\frac{z+\epsilon}{\epsilon}\big)^{z-1}|a-b|^z.
+$$
+
+\end{lemma}
+
+\subsection{Coresets for a Single Ring}
+\label{Lemma:SingleRing}
+We first show how to construct coresets when the data set is contained in a ring.
+\begin{definition}
+Let $o\in \mathbb{R}^d$ and $r>0$. We define $$
+ \mathrm{Ring}(o,r):=\{x\in \mathbb{R}^d| r\leq \|x-o\|_2\leq 2r\}.
+ $$ 
+\end{definition}
+
+We will need the following lemma.
+
+\begin{lemma}[Generalization of Lemma 13 in \cite{cohen2019fixed}]
+\label{lemma:VincentCoreset}
+Let $X\subseteq \mathbb{R}^d$ denote a weighted client set. Assume $X\subseteq \mathrm{Ring}(o,r)$ and $C$ is a weighted $k$-center such that $C\subseteq \mathbb{R}^d, |C|=k$. Let $D$ denote a uniform sample of size $m=O(\epsilon^3\log \delta^{-1})$ (where every $x\in X$ is regarded as $w(x)$ many independent copies) such that each sample is weighted by $\frac{w(X)}{m}$. Then with probability $1-\delta$, $$
+|\cost(D,C)-\cost(X,C)|\leq \epsilon r^2 \cdot w(X).
+$$
+\end{lemma}
+
+We carefully construct a family $\mathcal{F}$ of (weighted) $k$-center such that if the coreset property of $D$ holds on every $C\in \mathcal{F}$ then the coreset property of $D$ holds for (weighted) $k$-center.
+
+
+\paragraph{Constructing $\mathcal{F}$} Let $N$ denote an $\epsilon r$-net of the ball $B(o,\frac{r}{\epsilon})$ with $|N|\leq \epsilon^{-O(d)}$. Let $H=\{i\cdot  \frac{\epsilon^3}{k}\cdot w(X)|i=0,1,...,
+\lfloor\frac{k}{\epsilon^3}\rfloor\}$ denote the set of multiplicity of $\frac{\epsilon^3}{k}$ that is at most $w(X)$. Let $N\times H$ denote the set of weighted points $x$ such that $x\in N$ and $w(x)\in H$.
+We define $$
+\mathcal{F}:=\{C|C\subseteq N\times H,|C|=k\}.
+$$
+Note that $|\mathcal{F}|\leq \epsilon^{-O(kd)}\cdot (\frac{k}{\epsilon^3})^k$.
+
+\begin{lemma} \label{lemma:discrete}
+If for every $C\in \mathcal{F}$, \begin{eqnarray}
+|\cost(X,C)-\cost(D,C)|\leq \epsilon r\cdot w(X). \label{eqn:ring_assumption}
+\end{eqnarray} Then for any $C\subseteq \mathbb{R}^d$ such that $|C|=k$ and $w(C)=w(X)$, we have $$|\cost(D,C)-\cost(X,C)|\leq \epsilon \big(r\cdot w(X)+ \cost(X,C)\big).$$
+\end{lemma}
+
+\begin{proof}
+Fix a general $C\subseteq \mathbb{R}^d$ such that $|C|=k$ and $w(C)=w(X)$.
+Let $\mathrm{C}_{close}=\{c\in C|\|c-o\|_2\leq \frac{r}{\epsilon}\}$ and $C_{far}=C\setminus C_{close}$. We first prove the following simple fact that implies $C_{far}$ is actually not important.
+
+\begin{claim} \label{claim:ringfar}
+For every subset $Y_1,Y_2\subseteq X$ such that $w(Y_1)=w(Y_2)=w(C_{far})$, we have 
+$|\cost(Y_1,C_{far})-\cost(Y_2,C_{far})|\leq O(\epsilon)\cdot \cost(Y_1,C_{far})$.
+\end{claim}
+
+\begin{proof}
+We note that for every $y_1,y_2\in X$ and $c\in C_{far}$, by generalized traingle inequality Lemma \ref{lemma:GTI},  \begin{eqnarray*}|d(y_1,c)^2-d(y_2,c)^2|
+&\leq& 
+\epsilon \cdot d(y_1,c)^2+O(\frac{1}{\epsilon})\cdot d(y_1,y_2)^2\\
+&\leq& \epsilon \cdot d(y_1,c)^2+O(\frac{ r^2}{\epsilon})\\
+&\leq & O(\epsilon) \cdot d(y_1,c)^2
+\end{eqnarray*}
+where we have applied $d(y_1,y_2)\leq d(y_1,o)+d(y_2,o)\leq 4r$ and $d(y_1,c)\geq d(o,c)-d(o,y_1)\geq \Omega(\frac{r}{\epsilon})$.
+
+Interpret $Y_1,Y_2$ as measures on $X$ and match the density arbitrarily, we have
+$$
+|\cost(Y_1,C_{far})-\cost(Y_2,C_{far})|\leq \int_{Y_1} O(\epsilon)\cdot d(y,\pi(y))^2 dy\leq O(\epsilon)\cdot \cost(Y_1,C_{far})
+$$
+where $\mu(y)$ denotes the center that servers $y\in Y_1$ in the corresponding assignment of $\cost(Y_1,C_{far})$.
+\end{proof}
+
+\begin{claim} \label{claim:ring_close_far}
+\begin{eqnarray} \label{eqn:ring_close_far_1}
+|\cost(X,C)-\cost(X,C_{close})-\cost(X,C_{far})|\leq O(\epsilon)\cdot \cost(X,C_{far})
+\end{eqnarray} and 
+\begin{eqnarray} \label{eqn:ring_close_far_2}
+|\cost(D,C)-\cost(D,C_{close})-\cost(D,C_{far})|\leq O(\epsilon)\cdot \cost(D,C_{far})
+\end{eqnarray}
+\end{claim}
+
+\begin{proof}
+By definition we have $\cost(X,C)\leq \cost(X,C_{far})+\cost(X,C_{close})$. 
+
+On the other hand, let $X_{close}$ denote the (weighted) subset of $X$ that are served by $C_{close}$ in the corresponding assignment of $\cost(X,C)$ and let $X_{far}=X\setminus X_{close}$. Then we have $\cost(X,C_{close})\leq \cost(X_{close},C_{close})$. By Claim \ref{claim:ringfar}, we have $\cost(X,C_{far})\leq \cost(X_{far},C_{far})+ O(\epsilon) \cost(X,C_{far})$. Thus we have,
+\begin{eqnarray*}
+\cost(X,C_{close})+\cost(X,C_{far})&\leq& \cost(X_{close},C_{close})+\cost(X_{far},C_{far})+O(\epsilon) \cost(X,C_{far})\\
+&\leq &\cost(X,C)+O(\epsilon)\cost(X,C_{far}).
+\end{eqnarray*}
+Thus (\ref{eqn:ring_close_far_1}) holds. In the same way, (\ref{eqn:ring_close_far_2}) holds.
+\end{proof}
+
+As $D$ is supported on $X$, by Claim \ref{claim:ringfar}, we know that \begin{eqnarray}
+|\cost(X,C_{far})-\cost(D,C_{far})|\leq O(\epsilon)\cdot \cost(X,C_{far}) \label{eqn:ring_DX_far}
+\end{eqnarray}
+Now by Claim \ref{claim:ring_close_far} and Claim equation (\ref{eqn:ring_DX_far}), we only remain to prove $$
+|\cost(X,C_{close})-\cost(D,C_{close})|\leq \epsilon r^2\cdot w(X).
+$$
+
+We first find a set $C'\subseteq \mathcal{F}$ to replace $C_{close}$. For each $c\in C_{close}$, as $c\in B(o,\frac{r}{\epsilon})$, we can find a net point $c'\in N$ such that $\|c-c'\|_2\leq \epsilon r$. Let $h\in H$ denote the largest multiplicity of $\frac{\epsilon w(X)}{k}$ that is not greater than $w(c)$. We add $(c',h)$ into $C'$ for each $c\in C_{close}$ to construct $C'$.
+
+By (\ref{eqn:ring_assumption}) we have that $|\cost(X,C')-\cost(D,C')|\leq \epsilon r^2 w(X)$. Thus we only remain to bound $|\cost(X,C')-\cost(X,C_{close})|$ and $|\cost(D,C')-\cost(D,C_{close})|$.
+
+\begin{claim}
+$$
+|\cost(X,C')-\cost(X,C_{close})|\leq O(\epsilon)\cdot (r^2 w(X)+\cost(X,C_{close})).
+$$ and
+$$
+|\cost(D,C')-\cost(D,C_{close})|\leq O(\epsilon)\cdot (r^2 w(X)+\cost(D,C_{close}))
+$$
+\end{claim}
+\begin{proof}
+Just triangle inequality.
+\end{proof}
+
+Thus we conclude the proof of Lemma \ref{lemma:discrete}.
+
+\end{proof}
+
+
+
+\ignore{
+\begin{proof}
+We fix a valid $k$-center $C=\{(c_1,f_1),...,(c_k,f_k)\}\subseteq \mathbb{R}^d\times[W]$, i.e., $\sum_{i=1}^k f_i\geq W$. For each $c_i$, let $\eta_i$ denote the number of points that $c_i$ serves in the optimal assignment of $P$.
+
+Let $I_{far}:=\{i|\mathrm{dist}(c_i,P)\geq \frac{20R}{\epsilon^2}\}$ denote the set of indices of centers that are $\frac{20R}{\epsilon^2}$ far from every point of $P$. Let $\eta_{far}:=\sum_{i\in I_{far}} \eta_i$ denote the number of points that far centers serve.
+
+If $\eta_{far}\geq \epsilon W$ then $\mathrm{cost}(P,C)\geq \epsilon W\cdot \frac{20R}{\epsilon^2}=\frac{20WR}{\epsilon}$ and $I_{c}=[k]\setminus I_{far}$. We note that $D$ has the same capacity as $P$, and for every $x\in D$ and $p\in P$, $\|x-p\|_2\leq 4R$ as $D$ and $P$ are both in ring $(c,R)$, thus $|\mathrm{cost}(D,C)-\mathrm{cost}(P,C)|\leq 4WR\leq \epsilon\cdot \mathrm{cost}(P,C)$. 
+
+If $\eta_{far}<\epsilon W$, we first show that by affording $O(\epsilon n R)$ error, we can assume $\eta_i=f_i$ for every $i\in I_{c}$. To see this, for every $p\in P$, $i\in I_{c}$, and $j\in I_{far}$, $$
+d(p,c_i)\leq \frac{20R}{\epsilon^2}+4R\leq d(p,c_j)+4R.
+$$
+
+So if $I_{c}$ does not serve its full capacity, we can move points served by $I_{far}$ to $I_c$ by payting at most $4\epsilon W R$. So we can assume $\eta_i=f_i$ for each $i\in I_c$. Thus $\eta_{far}=W-\sum_{i\in I_c} f_i$.
+
+To compare $\mathrm{cost}(D,C)$ with $\mathrm{cost}(P,C)$, we construct the following center $C'\subseteq \mathbb{F}$. For each $i\in I_c$, let $c_i'$ be such that $|c_i'-c_i|\leq \epsilon R$ and $f_i'$ be a multiple of $w_1$ such that $f_i'-f_i\in [0,w]$, by construction, $\mathbb{F}$ should contain at least one such $(c_i',f_i')$. We let $C':=\{(c_i',f_i')| i\in I_c\}\cup \{(c,\epsilon W)\}$.
+
+As $D$ is an $\epsilon$-coreset of $(P,\mathbb{F})$, we have $|\mathrm{cost}(D,C')-\mathrm{cost}(P,C')|\leq \epsilon\cdot \mathrm{cost}(P,C')$. We write $\mathrm{cost}(P,C)=\mathrm{cost}_{c}(P)+\mathrm{cost}_{far}(P)$ where $\mathrm{cost}_{c}(P)$ and $\mathrm{cost}_{far}(P)$ are connection cost produced by centers in $I_c$ and $I_{far}$. Similarly we write $\mathrm{cost}(D,C)=\mathrm{cost}_c(D)+\mathrm{cost}_{far}(D)$. We then prove $|\mathrm{cost}_{far}(P)-\mathrm{cost}_{far}(D)|\leq O(\epsilon W R)$, $|\mathrm{cost}_{c}(P)-\mathrm{cost}_(P,C')|\leq  O(\epsilon W R)$, and 
+$ |\mathrm{cost}_{c}(D)-\mathrm{cost}(D,C')|\leq  O(\epsilon W R)
+$ to conclude.
+
+To see $|\mathrm{cost}_{c}(P)-\mathrm{cost}_(P,C')|\leq  O(\epsilon W R)$, we note that $C'$ has at most $w\cdot k$ more capacity than $I_c$ and one more center $c$ with capacity $R$, the difference can be at most $kw\cdot \frac{20R}{\epsilon^2}+\epsilon W\cdot 2R\leq O(\epsilon W R)$. Similarly, we have $ |\mathrm{cost}_{c}(D)-\mathrm{cost}(D,C')|\leq  O(\epsilon W R).
+$ 
+
+Finally, as $I_{far}$ serves at most $\epsilon W$ points and every pair of points are within distance $4R$, we have $|\mathrm{cost}_{far}(P)-\mathrm{cost}_{far}(D)|\leq 4R\cdot \epsilon W\leq O(\epsilon W R)$.
+\end{proof}
+}
+
+\begin{theorem}
+
+For a client set $X$ such that $X$ is contained in a ring $\mathrm{Ring}(o,r)$, uniform sampling of size $\tilde{O}(k/\epsilon^5)$ yields an $\epsilon$-coreset with constant probability. 
+\end{theorem}
+
+\begin{proof}
+By Lemma \ref{lemma:VincentCoreset} and $|\mathcal{F}|\leq \epsilon^{-O(kd)}\cdot (\frac{k}{\epsilon^3})^k$, with constant probability, the coreset property holds for every $C\in \mathcal{F}$ for a uniform sample of size $\tilde{O}(\frac{kd}{\epsilon^2})$. By terminal embedding \cite{narayanan2019optimal} and iterative size reduction \cite{braverman2021coresets}, we can trade in $d$ with a factor of $\tilde{O}(\log k/\epsilon^2)$. Thus a coreset of size $\tilde{O}(\frac{k}{\epsilon^5})$ can be obtained.
+\end{proof}
+
+\begin{proof} [Proof of Lemma \ref{lemma:close}]
+
+We use Bernstein's inequality. Let $X_i$'s, $i=1,2,...,m$ denote independent variables corresponding to the samples. 
+
+For the $i$-th sample, suppose it is $p\in P_{far}$, we let $X_i=\frac{\cost(P_{far},c)}{m\cdot \cost(p,c)}\cdot \cost(p,S(p))$ if $p\in P_{far}^{S,close}$ and $X_i=0$ otherwise.
+
+So $$\sum_{i=1}^m X_i=\sum_{p\in G^{S,close}}w_G(p)\cost(p,S(p)) $$
+and 
+
+$$\mathbb{E}[\sum_{i=1}^m X_i]=\sum_{p\in P_{far}^{S,close}}w(p)\cost(p,S(p))$$.
+
+We bound the $L_{\infty}$-norm by
+$$
+M:=\max_{p\in P_{far}^{S,close}} \frac{\cost(P_{far},c)}{m\cdot \cost(p,c)}\cdot \cost(p,S(p))\leq \frac{\cost(P,c)}{m\epsilon}
+$$
+
+We bound the second order moment by,
+\begin{eqnarray*}
+V&:=&m\sum_{x\in P_{far}^{S,close}} 
+\bigg{(}\frac{\cost(P_{far},c)}{m\cost(p,c)}
+\bigg{)}^2\cdot \cost(p,S(p))^2 \cdot \frac{\cost(p,c)}{\cost(P_{far},c)}\\
+&\leq &\frac{1}{m\epsilon}\cost(P_{far},c)\sum_{x\in P_{far}^{S,close}} \cost(p,S(p))\\
+&\leq &\frac{\cost(P,c)\cdot \cost(P,S)}{m\epsilon}
+\end{eqnarray*}
+
+It remains to plug in $M$, $V$, together with $t=\epsilon\cdot \cost(P,c)+\epsilon\cdot \cost(P,S)$ and $m\geq \frac{1}{\epsilon^3}\log\delta^{-1}$.
+
+
+\end{proof}
+
+
+\begin{proof}[Proof of Lemma \ref{lemma:controlfar}]
+
+By triangle inequality, we have 
+\begin{eqnarray*}
+\sum_{h\in H} w(h) d(h,S(h))&\leq& \sum_{h\in H} w(h) (d(h,c)+d(c,S(h)))\\
+&\leq & \sum_{h\in H} w(h) (\epsilon d(h,S(h))+d(c,S(h)))\\
+&\leq & \epsilon \sum_{h\in H} w(h) d(h,S(h))+ \sum_{s\in S} w(H\cap S^{-1}(s))\cdot d(c,s)\\
+&\leq & \epsilon \sum_{h\in H} w(h) d(h,S(h))+ \sum_{s\in S} O(\epsilon)\cdot w(S^{-1}(s))\cdot d(c,s)\\
+\end{eqnarray*}
+
+where for the last inequality, we have used $$
+w(H\cap S^{-1}(s))\leq \frac{\epsilon^2}{k}\cdot W\leq O(\epsilon)\cdot w(S^{-1}(s)).
+$$
+
+It suffices to prove $$
+\sum_{s\in S} w(S^{-1}(s)) \cdot d(c,s)\leq \cost(P,c)+\cost(P,S)
+$$
+
+We further note that,
+\begin{eqnarray*}
+\sum_{s\in S}w(S^{-1}(s))\cdot d(c,s)&=&\sum_{s\in S}\sum_{p\in S^{-1}(s)} d(c,s)\\
+&\leq & \sum_{s\in S}\sum_{p\in S^{-1}(s)} (d(c,p)+d(p,S))\\
+&=&\sum_{s\in S}(\cost(S^{-1}(s),c)+\cost(S^{-1}(s),s))\\
+&=&\cost(P,c)+\cost(P,S)
+\end{eqnarray*}
+
+\end{proof}
+
+
+\begin{proof}[Proof of Lemma \ref{lemma:weight}]
+We use Bernstein's inequality Lemma \ref{lemma:Bernstein}.
+
+Let $X_i$'s, $i=1,2,...,m$ denote an independent sample of \textsf{SensitivitySampling}.
+
+We first compute the expectation,
+$$
+\mathbb{E}[w_G(G)]=m\cdot \sum_{p\in P_{far}}\frac{\cost(p,c)}{\cost(P_{far},c)}\cdot \frac{\cost(P_{far},c)}{m\cost(p,c)}=w(P_{far}).
+$$
+
+We control the $L_{\infty}$-norm by
+$$
+M:=\max_{p\in P_{far}} \leq \frac{\cost(P_{far},c)}{m\cost(p,c)}\leq \frac{W\mu}{m\cdot \epsilon^2/k\cdot \mu}=\frac{k}{m\epsilon^2}\cdot W.
+$$
+
+We bound the second order moment by
+\begin{eqnarray*}
+V&:=&m\sum_{p\in P_{far}} \bigg{(}\frac{\cost(P_{far},c)}{m\cost(p,c)}
+\bigg{)}^2\cdot \frac{\cost(p,c)}{\cost(P_{far},c)}
+\\
+&=&\frac{1}{m}\sum_{p\in P_{far}}\frac{\cost(P_{far},c)}{\cost(p,c)}\\
+&=&\frac{kW}{m\epsilon^2}\cdot w(P_{far})\\
+&\leq & \frac{W^2}{m}
+\end{eqnarray*}
+
+It remains to plug in $t=\epsilon\cdot W$, $M=\frac{k}{m\epsilon^2}\cdot W$, $V=\frac{W^2}{m}$, and $m=\frac{\epsilon^3}{k}\cdot \log\delta^{-1}$.
+\end{proof}
+
+
+\begin{proof}[Proof of Lemma \ref{lemma:far}]
+By Lemma \ref{lemma:controlfar}, it suffices to show that $w(P_{far}^{S,far})\leq O(\frac{\epsilon^2}{k})\cdot W$ and 
+$w_G(G_{far}^{S,far})\leq O(\frac{\epsilon^2}{k})\cdot W$. The former holds trivially, as $w(P_{far})\leq O(\frac{\epsilon^2}{k})\cdot W$. 
+
+For the latter, we will show $w_G(G)\leq O(\frac{\epsilon^2}{k})\cdot W$. By Bernstein's inequality, we are able to show, with probability at least $1-\delta$, $\cost(G,c)\leq O(\cost(P_{far},c))$. Since $G$ is a subset of $P_{far}$, we have  $\min_{x\in G} d(x,c)\geq \frac{k}{\epsilon^2}\cdot \mu$, where we recall that $\mu=\cost(P,c)/W$ is the average cost. Thus $$w_G(G)\leq \frac{O(\cost(P,c))}{\frac{k}{\epsilon^2}\cdot \mu}\leq  O(\frac{\epsilon^2}{k})\cdot W.$$
+\end{proof}
+
+\section{Further experiments}
+
+\paragraph{K-Means}
+Table \ref{tab:means} summarizes the results of the experiments run on the original datasets. The algorithm by HJV performs best on the Adult and Bank datasets compared to our algorithm. This is likely due to the large large difference in magnitude of the different features, making it easy to get an epsilon coreset if you only preserve the distance in the directions of the large feature. This is demonstrated by the fact that HJV has a higher distortion on the normalized datasets.
+As expected our algorithm performs best on census, which also has the largest dimensionality. We also see that in the original datasets the importance sampling approach achieves a consistently lower distortion than uniform sampling.
+%Coment on time, and update tables.
+
+\begin{table}[ht]
+    \centering
+    \caption{Means results}
+    \begin{tabular}{@{}c c|c|c|c|c|c|c|c|c}
+     & Size & Ours & HJV & BICO & Uni & $T_{Our}$ & T$_{HJV}$ & Obj-time & Obj-time$_{Our}$\\
+    \hline
+    \multirow{9}*{\rotatebox{90}{Adult}}
+          &       886 &  11.62\% &  0.34\% &   2.70\% &   8.88\% &      1481 &       782 &   1567.3 &        6.6 \\
+      &       689 &   9.66\% &  0.62\% &  12.84\% &  16.31\% &      1390 &       500 &        - &        4.2 \\
+      &       573 &   7.46\% &  0.67\% &   2.08\% &  44.87\% &      1282 &       551 &        - &        3.7 \\
+      &       561 &   6.87\% &  1.29\% &   2.03\% &  16.04\% &      1193 &       546 &        - &        3.3 \\
+      &       435 &   6.47\% &  1.11\% &   4.33\% &  15.33\% &      1088 &       491 &        - &        2.7 \\
+      &       403 &   8.08\% &  1.36\% &   3.10\% &  18.31\% &      1098 &       493 &        - &        2.7 \\
+      &       410 &  11.19\% &  2.14\% &   2.88\% &  32.75\% &      1133 &       470 &        - &        2.4 \\
+      &       411 &   8.64\% &  2.47\% &   4.89\% &  16.47\% &      1143 &       537 &        - &        2.4 \\
+      &       392 &   7.24\% &  2.40\% &   5.26\% &  23.73\% &      1132 &       533 &        - &        2.5\\
+\hline
+\multirow{7}*{\rotatebox{90}{Diabetes}}
+      &      3349 &   2.13\% &  10.42\% &   9.78\% &   4.65\% &      5891 &      6348 &   6377.3 &       45.7 \\
+      &      1383 &   6.62\% &  14.70\% &  14.36\% &  10.70\% &      5092 &      3238 &        - &       18.6 \\
+      &       986 &   9.18\% &  13.48\% &  18.57\% &   7.49\% &      5222 &      3130 &        - &       12.5 \\
+      &       891 &   5.82\% &  13.31\% &  19.85\% &  12.06\% &      5056 &      3591 &        - &        7.3 \\
+      &       799 &  10.66\% &  12.99\% &  21.27\% &  10.71\% &      4580 &      3350 &        - &        6.1 \\
+      &       732 &   9.34\% &  13.44\% &  20.57\% &   8.88\% &      4295 &      2972 &        - &        8.6 \\
+      &       656 &  15.30\% &  13.11\% &  20.43\% &  15.90\% &      4474 &      2932 &        - &        5.0 \\
+
+      \hline
+    \multirow{9}*{\rotatebox{90}{Census}}
+      &      6256 &   0.78\% &   5.13\% &   7.70\% &   3.92\% &      2117 &     26280 &   1871.4 &      110.7 \\
+      &      2093 &   1.68\% &  10.08\% &   8.85\% &   5.00\% &      1998 &      8023 &        - &       38.2 \\
+      &       795 &   3.46\% &  15.75\% &  15.32\% &  12.67\% &      2302 &      3796 &        - &        8.8 \\
+      &       484 &   4.03\% &  23.80\% &  20.03\% &   9.33\% &      2213 &      2325 &        - &        4.2 \\
+      &       298 &   6.57\% &  25.58\% &  25.74\% &  13.05\% &      1841 &      1584 &        - &        2.5 \\
+      &       211 &   9.34\% &  29.38\% &  27.88\% &  19.91\% &      1851 &       967 &        - &        2.0 \\
+      &       123 &  15.55\% &  39.73\% &  33.81\% &  20.11\% &      1643 &       691 &        - &        1.3 \\
+      &       124 &  15.21\% &  39.87\% &  34.64\% &  14.39\% &      1559 &      1746 &        - &        1.2 \\
+      &       134 &  15.69\% &  39.94\% &  34.32\% &  33.07\% &      1574 &       794 &        - &        1.4 \\
+     \hline
+    \multirow{9}*{\rotatebox{90}{Bank}}
+         &       420 &  4.73\% &  3.17\% &  4.06\% &  23.13\% &      1093 &       487 &    842.9 &        2.6 \\
+      &       331 &  7.24\% &  3.10\% &  4.06\% &  13.84\% &      1080 &       480 &        - &        2.2 \\
+      &       286 &  6.96\% &  2.71\% &  5.24\% &  14.11\% &      1026 &       410 &        - &        2.1 \\
+      &       253 &  7.72\% &  2.79\% &  6.87\% &  19.88\% &      1264 &       478 &        - &        1.8 \\
+      &       222 &  6.88\% &  2.77\% &  4.82\% &  17.38\% &       973 &       491 &        - &        1.5 \\
+      &       199 &  7.23\% &  2.67\% &  5.35\% &  39.40\% &      1035 &       472 &        - &        1.6 \\
+      &       196 &  9.07\% &  2.27\% &  3.88\% &  56.23\% &       961 &       515 &        - &        1.4 \\
+      &       194 &  8.71\% &  2.92\% &  4.68\% &  24.71\% &      1094 &       436 &        - &        1.4 \\
+      &       171 &  7.40\% &  2.41\% &  5.20\% &  26.83\% &       992 &       524 &        - &        1.3 \\
+
+      \hline
+     \end{tabular}
+    \label{tab:means}
+\end{table}
+
+\paragraph{K-median}
+Running k-median we see a similar similar pattern of the datasets that we have a low distortion on. Again the performance of our algorithm is better than uniform sampling. Additionally our algorithm performs better on the Bank dataset on k-median compared to k-means. 
+
+\begin{table*}[ht]
+    \centering
+    \caption{Median results}
+    \begin{tabular}{@{}c c|c|c|c|c|c|c|c}
+     & Size & Ours & HJV & Uni & $T_{Our}$ & T$_{HJV}$ & Obj-time & Obj-time$_{Our}$\\
+    \hline
+    \multirow{9}*{\rotatebox{90}{Adult}}
+        &       271 &   7.20\% &  1.93\% &  14.30\% &      1545 &       472 &   1187.5 &        2.1 \\
+      &       222 &   9.18\% &  2.93\% &  13.50\% &      1403 &       383 &        - &        1.7 \\
+      &       216 &   6.97\% &  4.60\% &  18.38\% &      1548 &       381 &        - &        1.7 \\
+      &       184 &   9.24\% &  4.09\% &  17.35\% &      1439 &       385 &        - &        1.5 \\
+      &       181 &  10.29\% &  9.37\% &  19.28\% &      1383 &       370 &        - &        1.7 \\
+      &       181 &  10.33\% &  5.57\% &  14.42\% &      1408 &       329 &        - &        1.6 \\
+      &       151 &   7.65\% &  4.16\% &  15.85\% &      1257 &       377 &        - &        1.5 \\
+      &       142 &   7.74\% &  6.44\% &  24.92\% &      1417 &       319 &        - &        1.4 \\
+      &       105 &   6.95\% &  5.63\% &  14.12\% &      1378 &       401 &        - &        1.0 \\
+      \hline
+    \multirow{5}*{\rotatebox{90}{Diabetes}}
+      &      6670 &  0.52\% &  3.15\% &   2.19\% &      4780 &      5383 &   6442.4 &      102.0 \\
+      &      3431 &  1.07\% &  4.45\% &   1.24\% &      4904 &      4238 &        - &       46.5 \\
+      &      2180 &  1.58\% &  4.74\% &   2.68\% &      5134 &      3859 &        - &       29.7 \\
+      &      1671 &  3.13\% &  5.18\% &   3.78\% &      4401 &      3760 &        - &       21.6 \\
+      &       929 &  2.61\% &  7.43\% &   2.27\% &      4665 &      3445 &        - &        6.9 \\
+      \hline
+    \multirow{9}*{\rotatebox{90}{Census}}
+      &     11817 &  0.40\% &   1.19\% &   0.69\% &      2378 &     19012 &   2005.6 &      215.5 \\
+      &      7330 &  0.46\% &   2.04\% &   4.09\% &      2445 &      9196 &        - &      119.4 \\
+      &      4599 &  0.53\% &   3.28\% &   2.62\% &      2505 &      4984 &        - &       76.7 \\
+      &      3204 &  0.89\% &   3.90\% &   3.27\% &      2382 &      3140 &        - &       55.2 \\
+      &      1953 &  1.05\% &   5.53\% &   1.93\% &      2408 &      1733 &        - &       40.0 \\
+      &      1286 &  1.76\% &   9.36\% &   4.05\% &      2460 &      1189 &        - &       31.5 \\
+      &       904 &  2.27\% &   9.96\% &   4.92\% &      2457 &       921 &        - &       10.7 \\
+      &       790 &  1.85\% &  10.97\% &   4.03\% &      2386 &       856 &        - &        8.4 \\
+      &       456 &  2.68\% &  10.38\% &   4.00\% &      2952 &       671 &        - &        4.7 \\
+     \hline
+    \multirow{7}*{\rotatebox{90}{Bank}}
+     &      2145 &  1.81\% &  1.21\% &   3.93\% &      1529 &      1039 &   1037.3 &       35.6 \\
+      &      1087 &  2.33\% &  1.87\% &   3.52\% &      1335 &       609 &        - &       14.8 \\
+      &       758 &  3.78\% &  3.10\% &   7.21\% &      1591 &       538 &        - &        6.0 \\
+      &       665 &  2.06\% &  2.81\% &   5.46\% &      1459 &       554 &        - &        5.1 \\
+      &       470 &  5.13\% &  4.70\% &   9.11\% &      1589 &       640 &        - &        3.5 \\
+      &       468 &  4.22\% &  4.81\% &  10.00\% &      1333 &       576 &        - &        3.6 \\
+      &       177 &  6.24\% &  9.04\% &  23.88\% &      1362 &       485 &        - &        1.6 \\
+      \hline
+     \end{tabular}
+    \label{tab:median}
+\end{table*}
+\paragraph{Possible explanation for poor performance on Adult}
+We also explore the fact that we might miss some low cost clusters when using the approximation. We find approximate solutions for k=k and for $k=6$ where m is the size of the largest coreset we used. We see that the ratio between the many-center and the few center solution is largest for Adult, indicating that we may miss some low cost center.
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c|c|c}
+    Dataset & m & $\frac{Cost(X, k)}{Cost(X,m)}$\\
+    \hline
+        Adult & 880& 6000 \\
+        Diabetes & 50162& 267 \\
+        Census &6352& 80\\
+        Bank &  409 & 253
+    \end{tabular}
+    \caption{Caption}
+    \label{tab:my_label}
+\end{table}
+
+

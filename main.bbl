@@ -1,0 +1,30 @@
+\begin{thebibliography}{3}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Braverman et~al.(2021)Braverman, Jiang, Krauthgamer, and
+  Wu]{braverman2021coresets}
+Braverman, V., Jiang, S. H.-C., Krauthgamer, R., and Wu, X.
+\newblock Coresets for clustering in excluded-minor graphs and beyond.
+\newblock In \emph{Proceedings of the 2021 ACM-SIAM Symposium on Discrete
+  Algorithms (SODA)}, pp.\  2679--2696. SIAM, 2021.
+
+\bibitem[Cohen-Addad \& Li(2019)Cohen-Addad and Li]{cohen2019fixed}
+Cohen-Addad, V. and Li, J.
+\newblock On the fixed-parameter tractability of capacitated clustering.
+\newblock In \emph{46th International Colloquium on Automata, Languages, and
+  Programming (ICALP 2019)}, volume 132, pp.\  41--1. Schloss
+  Dagstuhl--Leibniz-Zentrum fuer Informatik, 2019.
+
+\bibitem[Cohen{-}Addad et~al.(2021)Cohen{-}Addad, Saulpic, and
+  Schwiegelshohn]{stoc}
+Cohen{-}Addad, V., Saulpic, D., and Schwiegelshohn, C.
+\newblock A new coreset framework for clustering.
+\newblock In Khuller, S. and Williams, V.~V. (eds.), \emph{{STOC} '21: 53rd
+  Annual {ACM} {SIGACT} Symposium on Theory of Computing, Virtual Event, Italy,
+  June 21-25, 2021}. {ACM}, 2021.
+
+\end{thebibliography}

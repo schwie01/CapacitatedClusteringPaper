@@ -1,0 +1,8 @@
+\begin{abstract}
+    We study clustering problems with cardinality constraints where the objective is to minimize the clustering cost, corresponding to the sum of powers of Euclidean distances of every point to its assigned center, under constraints for cluster composition.
+Such constraints include clustering with group-fairness, clustering with capacity, and clustering with anonymity. Our aim is to compute coresets for these problems, i.e. a small weighted set of points such that the cost for any set of $k$ centers with some feasible cardinality constraint is approximated within a $(1\pm\varepsilon)$ factor.
+
+For theses problems, we present coresets of size $\text{poly}(k/\varepsilon)$. Notably, ours is the first coreset to be independent of the number of input points $n$  and the dimension $d$ for any of the aforementioned problems. Moreover, despite our algorithm being general and able to address various types of constraints, it performs particularly well empirically compared to state of the art coreset implementations for clustering with group-fairness constraints.
+
+There are a number of further implications of our work. Using coresets, we can design a nearly-linear-time $(1+\varepsilon)$-approximation algorithm for these problems whenever $k$ and $\varepsilon$ are assumed to be constant. Contrary to the optimization problem, our work shows that there need not exist a "price of fairness"  when constructing coresets for fair $k$ clustering.
+\end{abstract}

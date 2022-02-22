@@ -1,0 +1,117 @@
+
+\section{Sketch of Arguments for Points Where We Cannot Use Vincent's Magic Lemma}
+
+We discussed on Feb 2 how to obtain the $k^2 \varepsilon^{O(z)}$ result (with no dependency on $\log n$. 
+We have the following bottleneck. Let $C_i$ be a cluster with center $c_i$ in the initial approximate solution. Denote by $\Delta_i = \frac{\cost(C_i,c_i)}{|C_i|}$. For all the points with cost less $\varepsilon^{-3z}\Delta_i$, we can use the ring-based construction above. The bottleneck are the points $Far_i$ that cost at least $\varepsilon^{-3z}\Delta_i$.
+
+The algorithm for these points is as follows.
+ch
+\begin{itemize}
+\item Remove all points with $\cost(p,c_i)/\cost(C_i,c_i) \geq \varepsilon^z/k$ and add them to the coreset by hand. Let $Far_i$ be the remaining points from now on. May be necessary (not sure).
+    \item sample points $D$ from $Far_i$ proportionate to $\cost(p,c_i)$.
+    \item Let $|\hat{C_i}| = \sum_{p\in D} \frac{\cost(Far_i,c_i}{|D| \cdot \cost(p,c_i)}$ and define $\alpha = \frac{|\hat{C_i}|}{|C_i|}$
+    \item Scale weights by $\frac{1}{\alpha}$
+\end{itemize}
+
+
+
+We will claim that this yields a coreset. Variants of the following lemmas should hopefully work.
+
+
+\subsection{Weight Approximation}
+
+\begin{lemma}
+Sensitivity sampling $|D|\geq \varepsilon'^{-2}\log 1/\delta$ points guarantees 
+$$|\hat{C_i}| = (1\pm \varepsilon')|C_i|$$
+with probability $1-\delta$.
+\end{lemma}
+
+\begin{lemma}
+\label{lem:Close_i}
+Let $Cheap_i$ be the set of points $p\in Far_i$ such that $\cost(p,S) \leq \varepsilon^{-z}\cdot \cost(p,c_i)$. Then sensitivity sampling $|D|$ points with scaled weights approximates $\cost(Cheap_i,S)$ for any capacitated solution $S$ up to an additive error of $\varepsilon\cdot\cost(C_i,c_i)$ with probability 
+$\exp\left(-\frac{\varepsilon^2 |D|}{\varepsilon^{-2z}}\right)$.
+\end{lemma}
+\begin{proof}
+First, prove that this holds for $S$ with capacities scaled by $\alpha_i$ for the sample, then show that this scaling does not change the cost by more than a factor $[\alpha_i^{-1},\alpha_i]$.
+\end{proof}
+
+\subsection{Exchange Arguments}
+
+\begin{lemma}
+\label{lem:B_iexp}
+Let $Expensive_i$ be the set of points $p\in Far_i$ such that $\cost(p,S) \geq \varepsilon^{-z}\cdot \cost(p,c_i)$. Let $S(p)$ be the point serving $p$ in $S$. 
+Let $B_i\in _i$ we the set of points with $\cost(q)\leq \varepsilon^{-z}\cdot \Delta_i$. Then if $\cost(B_i,S) \geq \varepsilon{-z}\cost(B_i,c_i)$, we have 
+$$\left\vert\sum_{p\in Far_i} \cost(p,S(p)) -  \sum_{p\in Far_i} (\cost(p,c_i) + \cost(c_i,S(p)))\right\vert \leq \varepsilon\cdot \cost(C_i,S).$$
+\end{lemma}
+\begin{proof}
+For $k$-median this is just a triangle inequality proof. For $k$-means and higher powers, we have to use the approximate triangle inequality, but it should still go through.
+\end{proof}
+
+\begin{lemma}
+\label{lem:exchange}
+Let $Expensive_i$ be the set of points $p\in Far_i$ such that $\cost(p,S) \geq \varepsilon^{-z}\cdot \cost(p,c_i)$. Let $S(p)$ be the point serving $p$ in $S$. 
+Let $q\in C_i$ with $\cost(p)\leq \varepsilon^{-z}\cdot \Delta_i$ with $S(q)$ being the center serving $a$ in solution $S$. Then if $\cost(q,S) \leq \varepsilon^{-2z}\Delta_i$, we have 
+$$\left(\cost(p,S(q)) + \cost(q,S(q)) - \cost(p,S(p)) - \cost(q,S(q))\right) \leq \varepsilon\cdot \left(\frac{\cost(C_i,c_i)}{|C_i|} + \cost(p,S(p)\right).$$
+\end{lemma}
+\begin{proof}
+Almost analogous to the preceding lemma. 
+\end{proof}
+
+\subsection{Putting it all together}
+
+\begin{lemma}
+Sensitivity sampling $|D|$ points with scaled weights approximates $\cost(Far_i,S)$ for any capacitated solution $S$ up to an additive error of $\varepsilon\cdot \left(\cost(C_i,c_i) + \cost(C_i,S)\right)$ with probability 
+$\exp\left(-\frac{\varepsilon^2 |D|}{\varepsilon^{-2z}}\right)$.
+\end{lemma}
+\begin{proof}
+For $\cost(Close_i,S)$ we know the cost is well approximated via Lemma~\ref{lem:Close_i}. For all the weight (i.e. points) in $Expensive_i$, we now invoke one of the two exchange arguments. That is, either we can always take a detour to $c_i$ (Lemma \ref{lem:B_iexp}), and charge $2^z\cost(Expensive_i,c_i)$ to $\cost(B_i,S)$, or there exists enough points in $B_i$ to invoke Lemma~\ref{lem:exchange}.
+\end{proof}
+
+\subsection{More Details}
+We need to take care of the capacity.
+\paragraph{Importance Sampling} Fix a cluster $C_i$ which is served by $c_i$, fix a test solution $A=\{a_1,...,a_k\}$. Let $C_i^j$ denote the subset of points in $C_i$ that are served by $a_j$. Let $\mathrm{Price}_{ij}=\mathrm{cost}(C_i^j,a_j)$. Importance sampling implies that we can get a sample $C'$ such that $\mathrm{cost}(C',a_j)\in (1\pm\epsilon)\cdot \mathrm{Price}_{ij}+O(\epsilon^2/k)\cdot \mathrm{cost}(C_i^j,c_i)$.
+
+\paragraph{Surplus of Capacity} We are not yet fully satisfied. The issue is the capacity should be exactly preserved. Assume the total weight resulting from importance sampling is $W'$ and the original total weight is $W$.
+\begin{itemize}
+    \item If $W'\leq W$, we simply add $W-W$ copy of $c_i$ (replace with the closest point to $c_i$ if only the original points are allowed) into the coreset.
+    \item If $W'>W$, simple scale down $W$. Note that the density of sample in each $C_i^j$ should lie in $(1\pm O(\epsilon))|C_i^j|$. We can afford it, since by exchange lemma, each $p$ contribute at most $\epsilon^{-1}\cdot \mathrm{cost}(p,c_i)$ and we can treat them as $c_i$ and pay the error to assign them.
+\end{itemize}
+
+\paragraph{Discretization}
+The Discretization is a combination of Section \ref{Lemma:SingleRing} and that of \cite{cohen2021new}. In particular, for each $p$, we build an $\epsilon\cdot \mathrm{cost}(p,c_i)$-net of the ball $B(p,\epsilon^{-1}\mathrm{cost}(p,c_i))$, add a far enough point, and discretize the capacity similarly.
+
+\section{Others}
+We fix a cluster $C$ and its center $c$, let $\mu=\frac{\mathrm{cost}(C,c)}{|C|}$ denote the average connection cost of $C$. Let $$
+G=\{p\in C|\mathrm{cost}(p,c)>\epsilon^{-1}\mu\}
+$$
+denote the outside ring.
+
+In the following, we fix a $k$-center $S=\{s_1,...,s_k\}$ and its capacities $f_1,...,f_k$. By discretization, it suffices to consider the case that each $f_i\geq \frac{\epsilon^3}{k}\cdot W$.
+
+\paragraph{The Algorithm} We consider the \textsf{SensitivitySampling}$(N)$ procedure on $G$, where we take a sample of size $N$ such that each point $p\in G$ is sampled with probability $\frac{\mathrm{cost}(p,c)}{\mathrm{cost}(G,c)}$ and assigned with weight $\frac{\mathrm{cost}(G,c)}{N\cdot \mathrm{cost}(p,c)}$. Finally, we scale the weight of our sample so that the total weight equals $|G|$.
+
+\begin{lemma}
+Let $D$ denote a coreset produced by \textsf{SensitivitySampling}$(N)$ with $N=\mathrm{poly}(\frac{k}{\epsilon})$, for every center $S$, with high probability, 
+$$
+|\mathrm{cost}(D,S)-\mathrm{cost}(G,S)|
+\leq O(\epsilon)\cdot (\mathrm{cost}(G,c)+\mathrm{cost}(G,S)).$$
+\end{lemma}
+
+We denote by $G_{close,S}$ the set of points $p\in G$ such that $\mathrm{cost}(p,S)\leq \epsilon^{-1}\cdot \mathrm{cost}(p,c)$. Let $G_{far,S}=G\setminus G_{close,S}$. 
+
+\paragraph{Move $G_{far,S}$ to $c$} We first observe that we can move $G_{far,S}$ into $c$ in the analysis. In fact, by triangle inequality, we pay $\sum_{p\in G_{far,S}} \mathrm{cost}(p,c)\leq \epsilon \sum_{p\in G_{far,S}}\mathrm{cost}(p,S)\leq \epsilon\cdot \mathrm{cost}(G_{far,S},S)$ to do this.
+
+\paragraph{Total Weight of The Coreset}
+Let $W_D=\sum_{i=1}^N X_i$ where $X_i=\frac{\mathrm{cost}(G,c)}{N\cdot \mathrm{cost}(p,c)}$ if the $i$-th sample is $p$. By definition of $G$, for every $p\in G$, $\mathrm{cost}(p,c)>\epsilon^{-1}\mu\geq\frac{\mathrm{cost}(G,c)}{\epsilon\cdot |G|} $. Thus $|X_i|\leq \frac{\epsilon}{N}\cdot |G|$. Thus we can indeed assume $G=G_{close,S}$ in the following.
+
+\paragraph{Compare The Cost} Let $S_i$ denote the cluster centered at $s_i$ on the optimal assignment from $G$ to $S$. As $f_i\geq \Omega(\frac{\epsilon^3}{k})\cdot |G|$ by the discretization, and by Hoeffding's inequality, w.h.p, we have $w(G\cap S_i)\in (1\pm\epsilon) f_i$. We modify $D$ to another weighted set $D_S$ such that $w(D_S\cap S_i)=f_i$. To this end, for each $D\cap S_i$, we uniform increase or decrease the weight of each point $p\in S_i$ until $w(D\cap S_i)=f_i$. Finally, we adjust the weight of $c$ such that the total weight is $|G|$.
+
+We claim that $|\mathrm{cost}(D_S,S)-\mathrm{cost}(D,S)|\leq \epsilon \cdot \mathrm{cost}(G,c)$. To see this, recall that $w(D\cap S_i)\in (1\pm \epsilon)f_i$ and we uniformly increase/decrease the weight, and charge them with the same weight in $c$, we only pay $\epsilon\cdot \mathrm{cost}(S_i,c)$. 
+
+We then show that $|\mathrm{cost}(D_S,S)-\mathrm{cost}(G,S)|\leq \epsilon\cdot \mathrm{cost}(G,S)$. By Bernstein inequality, and the same reason of the proof of Lemma 3 in \cite{cohen2021new}, w.h.p., $\mathrm{cost}(D_S\cap S_i,s_i)\in (1\pm \epsilon)\cdot \mathrm{cost}(S_i,s_i)$.
+
+\begin{observation}
+In the optimal assignment from $D_S$ to $S$, $D_S\cap S_i$ must be all sent to $s_i$.
+\end{observation}
+
+We thus know that $$|\mathrm{cost}(D_S,S)-\mathrm{cost}(G,S)|\leq \sum_{i=1}^k |\mathrm{cost}(D_S\cap S_i,s_i)-\mathrm{cost}(S_i,s_i)|\leq \epsilon\cdot \mathrm{cost}(G,S)$$.

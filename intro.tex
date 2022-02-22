@@ -1,0 +1,136 @@
+\section{Introduction}
+\chris{The technical sections are unusable. Sometimes I may believe the claims, but the proofs are uniformly not rigorous. The exposition is also lacking, and the arguments are not complete. It is so bad, I think we need to start from scratch.}
+Center-based clustering is well understood, both regarding the computational challenge of computing a good clustering, as well as the question of compressing a data set.
+Contrary to this, clustering with capacity constraints is a notoriously difficult problem. An illustrative example is the (uniform) capacitated $k$-means problem: Given a set of points in $\mathds{R}^d$, the problem of computing a partition of the points into $k$ \textit{clusters} of equal size so as to minimize the sum of the squared distances from each point  to the mean of its cluster.
+Such capacity constraints have recently received substantial attention as they frequently arise in important applications such as disparity-of-impact-based fairness.
+The difficulty of finding a good clustering increases dramatically when adding capacity constraints. In the non-capacitated version, there exist a large number of constant factor approximation algorithms, often with very good running times. In the capacitated version, determining whether a polynomial time constant factor approximation algorithm exists is a major open problem. Similarly, constant factor approximations are only known for special cases of fair clustering.
+
+A similar, though not as pronounced, dichotomy exists for computing coresets for these problems. Roughly speaking, a coreset $D$ of a point set $P$ is a small weighted subset such that for any candidate solution the cost of the $D$ and $P$ are within a $(1\pm \varepsilon)$ factor for some precision parameter $\varepsilon>0$.
+In Euclidean spaces, coresets of size $\tilde{O}(k\cdot \varepsilon^{-4})$ exist for unconstrained $k$-means \cite{stoc}. 
+Contrary to this, the state of the art coresets for fair clustering with a constant number of groups in Euclidean spaces are $\tilde{O}(k^7\varepsilon^{-5}\log n^6 (\log n + d))$ by \cite{BandyapadhyayFS21} and $O(k^3 \varepsilon^{-d-1})$ by \cite{HuangJV19}, where $n$ is the number of input points and $d$ is the ambient dimension of the point set. Thus, we have large dependencies on parameters that do not even appear for the unconstrained case.
+
+In this paper we show that such a large gap between unconstrained clustering problems and a large number of clustering objectives is not necessary. Specifically, we show that for \emph{any} capacity constraint, a small coreset exists for both $k$-median and $k$-means. Thus we either improve on or give the first coreset construction for the following problems:
+\begin{description}
+    \item[Capacitated Clustering.] We give a coreset of size $\tilde{O}(k^2 \varepsilon^{-O(1)})$. This improves over the previous state of the art by \cite{cohen2019fixed}, who gave a corset of size $\tilde{O}(k^2\varepsilon^{-O(1)} \log^2 n )$.
+    \item[Fair Clustering.] We are given a point set an a coloring of the input nodes. Each cluster is required to have the same ratio of colors as the entire point set. If the maximum number of different color combinations is bounded by $\Gamma$, our coreset has size $\tilde{O}(\Gamma k^2 \varepsilon^{-O(1)})$. This improves over the aforementioned previous results by \cite{BandyapadhyayFS21} and \cite{HuangJV19}. In particular, ours is the first coreset construction independent of both $n$ and $d$.
+    \item[Clustering with Anonymity.] The size of every non-empty cluster is lower-bounded. This prevents clusters to consist of only only few points, which is motivated by privacy concerns. This problem was introduced by \cite{AggarwalPFTKKZ10}. Our coreset has size $\tilde{O}(k^2 \varepsilon^{-O(1)})$. To the best of our knowledge, this is the first coreset for this problem.
+    \item[Clustering with Diversity] Similar to the fair clustering problem, we are given a coloring of the input nodes. In every cluster, we would like no more than a $1/\ell$-fraction of the points to belong to a single color, for some $\ell>0$. The problem was introduced by \cite{LiYZ10}. If the maximum number of distinct colors is bounded by $\Gamma$, our coreset has size $\tilde{O}(\Gamma k^2 \varepsilon^{-O(1)})$. To the best of our knowledge, this is the first coreset for this problem.
+\end{description}
+
+% This is rather unfortunate: clustering problems arise very naturally in a large number of fields and in particular in data analysis and unsupervised machine learning, and for several
+% applications, there are constraints on the structure of the desired clusters. 
+% For example, if each element of the clustering input belong to a population, one may 
+% want to compute  \textit{fair} clustering, namely a clustering where for each cluster,  for each population, the percentage of individual of the population is the same in the cluster than for the entire input, hence providing representative clusters.
+% This problem was introduced in the seminal work of \cite{NIPS2017_978fce5b} and has gained a lot of attention from machine learning community since then.
+% Another example is the $\kappa$-anonymity framework where to ensure some level of privacy one may want to partition a given input into clusters of very similar elements and then act  on the centroids of the clusters rather than on the elements themselves. To achieve some  minimal amount of privacy (in fact anonymization), it is required that each cluster is  of some minimal size, say $\kappa$. 
+% This can naturally be cast as a $k$-means problem with minimal-cluster-size (here $\kappa$). 
+% Obtaining efficient solutions to the above problems has been at the heart of a variety of
+% works and remains a major challenge.  \todo{Add biblio}
+
+% One natural way to approach these problems is to reduce the input size as much as possible so as
+% to enable more computationally expensive methods. For example, if 
+% one aims at clustering the data in a few clusters (e.g.: $k = 10$), one may tolerate an 
+% algorithm with running time $2^k$ poly($n$) but not $n^{k}$. It is thus desirable to find
+% ways of reducing the input size. Central to these approaches
+% is the notion of \textit{coreset}: A coreset is a small weighted subset of the input data set that can serve as a proxy for the optimization problem; In other words: a choice  
+% of centers for the coreset is good choice of centers if and only if it is a good choice of centers for the original input.
+% Despite the hardness of constrained clustering problems, it has been shown that small-size coresets for these problems do exist and can be computed efficiently\todo{add citation}.
+
+\subsection{Related Work}
+\paragraph{Coresets} Following a long line of work \cite{BachemL018,BecchettiBC0S19,BravermanJKW21,Chen09,stoc,FL11,FeldmanSS20,
+FengKW21,FGSSS13,HaK07, HaM04, huang2020coresets, LS10, SohlerW18}, we now have coresets of size $\tilde{O}(k\varepsilon^{-4})$ for $k$-median and $k$-means in Euclidean spaces \cite{stoc}.
+Coresets for clustering with capacity constraints is a comparatively recent topic, initially proposed by \cite{SSS19}, and then subsequently improved by \cite{BandyapadhyayFS21,HuangJV19}. Related questions of making fair clustering algorithms more scalable can be found in \cite{BIOSVW19}.
+\paragraph{Fair Clustering}
+Fair clustering under disparity of impact was first proposed in the seminal work by \cite{CKLV17}. Though no constant factor approximation algorithm is known in general, \cite{CKLV17} were able to obtain such a result if the number of protected classes was two and both classes had (nearly) equal size. Follow up work (see e.g.~\cite{BCN19,BGKKRSS19,RS18,SSS19}) has considered the question of whether these
+guarantees can be extended for multiple protected classes.  \cite{BGKKRSS19} and \cite{BCN19}) obtained a constant factor approximation violating the fairness guarantee by small additive terms.
+Under the same assumptions as \cite{CKLV17}, \cite{BohmFLMS21} obtained a constant factor approximation.
+For other clustering problems using the same fairness notion, we refer to recent work by Ahmadian et al.~\cite{AhmadianE0M20,AhmadianEK0MMPV20}.
+
+\paragraph{Clustering with Other Cardinality Constraints}
+Aside from fair clustering, capacitated clustering has received most attention \cite{AdamczykBMM019,CyganHK12,DemirciL16,Li15,Li17}. The best general approximation factor for $k$-median and $k$-means is still $\log k$. Constant factor approximation are only known if one allows for an exponential running time in $k$ \cite{AdamczykBMM019,Cohen-AddadL19}, or allows either a violation of capacities or number of clusters \cite{DemirciL16,Li15,Li17}. For clustering with anonymity, \cite{Arutyunova021} gave a constant factor approximation. If the number of clusters are assumed to be constant, \cite{DingX15} gave a PTAS for both clustering with diversity and clustering with anonymity.
+
+
+\subsection{Preliminaries and Problem Definitions}
+Throughout this paper, we consider $d$-dimensional Euclidean spaces, i.e. the distance between two points $a$ and $b$ is defined as $\|a-b\| = \sqrt{\sum_{i=1}^d (a_i-b_i)^2}$. We use $[n]$ to the denote the positive integers from $1$ to $n$.
+The most general problem we consider is the \kzC clustering problem, where, given a point set $X$, a set of centers $C$, a positive integer $z$, and an assignment $c:X\rightarrow C$, we have
+$$\cost(X,C) := \sum_{p\in X} \|p-c(p)\|^z.$$
+Special cases include $z=1$, which corresponds to Euclidean $k$-median, and $z=2$, which corresponds to Euclidean $k$-means.
+For ease of presentation, we present most of our results for Euclidean \kMedian with several constraints, including the ones described above. Our algorithms and analysis can be extended to \kMeans and the more general \kzC problems. Details can be found in the supplementary material.
+We focus on assignments resulting from cardinality constraints, i.e. we are also given a mapping $w:C\rightarrow [|X|]$ with $\sum_{c_i\in C} w_i = |X|$ and the mapping $c$ is the mapping minimizing the cost such that the number of points served by $C_i$ is $w_i$. To emphasize that the mapping depends on $w$, we write $\cost(X,w,C)$.
+
+Our aim is to compute coresets for the following evaluation queries.
+\paragraph{Coresets for Clustering with Cardinality Constraints}
+Let $X\subseteq \mathbb{R}^d$ be a point set. Let $C\subseteq \mathbb{R}^d$ be a set of at most $k$ centers and let $w:C\rightarrow [|X|]$ be a set of cardinalities such that $\sum_{c_i\in C} w_i = |X|$. We say that a weighted subset $D\subseteq X$ is a coreset for clustering with cardinality constraints if for every $C$ and every $w$, we have
+$$ |\cost(X,w,C) - \cost(D,w,C)| \leq \varepsilon\cdot \cost(X,w,C).$$
+
+We note that computing coresets for the aforementioned problems of fair clustering, capacitated clutsering, clustering with anonymity, and clustering with diversity can be  reduced to computing coresets for clustering with cardinality constraints.
+This can be seen as follows. For any constraint, there exists as feasible clustering with a mapping $w$ satisfying this constraint. Since the mapping $w$ imposes an additional constraint on the clustering, its cost cannot become smaller. At the same time, the cost cannot become larger either, as $w$ was feasible for the original constraint. Thus, the mapping $w$ corresponds to a clustering of identical cost.
+
+For the special case of fair clustering, this argument changes in minor ways. In fair clustering, each point is given a set of colors corresponding to some protected attribute. The constraint imposed on every clustering is that for every pair of colors $\{RED, BLUE, GREEN,\ldots \}$, ever cluster $C_i$ satisfies $\frac{a_{RED}}{b_{BLUE}} \leq \frac{|C_i\cap RED|}{|C_i\cap BLUE|} \leq \frac{b_{RED}}{a_{BLUE}}$, for $a_{RED}\leq b_{RED}$ and $a_{BLUE}\leq b_{BLUE}$. Note that points can have multiple colors.
+We first partition the points in groups such that points from every group have the same subset of colors. For each of these groups, we now compute a coreset for clustering with cardinality constraints. A proof of the validity of this reduction can be found in Theorem 4.2 of \cite{HuangJV19}.
+
+
+% \paragraph{Capacitated \kMedian} is the \kMedian problem with capacity constraint on each center. Given a data set $X\subseteq \mathbb{R}^d$ and a constraint vector $w:[k]\rightarrow \mathbb{R}_{\geq 0} $ such that $\sum_{i=1}^k w(i)=|X|$, we aim to find a $k$-subset $\{c_1,...,c_k\}\subseteq \mathbb{R}^d$ to minimize the sum of connection cost $\sum_{x\in X} d(x,\pi(x))$ where $\pi:X\rightarrow C$ is an assignment function such that $c_i$ can serve at most $w(i)$ points from $X$, i.e, $|\pi^{-1}(c_i)|\leq w(i)$. We use $\mathrm{cost}(X,w,C)$ to denote the value of the optimal assignment. To simplify the notation, we also regard $w$ as a weight function on $C$ and use $\mathrm{cost}(X,C)$ to denote $\mathrm{cost}(X,w,C)$ when there is a weight function $w$ on $C$.
+
+% \paragraph{Coresets for Capacitated \kMedian} A weighted subset $D\subseteq X$ is called an $\varepsilon$-coreset of $X$ for capacitated \kMedian if for every weighted $k$-center $C\subseteq \mathbb{R}^d$,  
+% $$
+% \mathrm{cost}(D,C)\in (1\pm\varepsilon)\cdot \mathrm{cost}(X,C).\footnote{Here we extend the cost function to allow weighted subset where the data points can be served by centers fractionally}
+% $$
+
+% \paragraph{Coresets for Fair \kMedian} In fair \kMedian, multiple groups of the data set $G_1,G_2,...,G_l\subseteq X$ are given in advance. A capacity matrix $M\in \mathbb{R}^{l\times k}$ specifies the exact number points of every group in each cluster. Namely, if $C_j$ denotes the $j$-th cluster, $|M_{ij}|=|G_i\cap C_j|$. We use $\cost(X,M,C)$ to denote the cost of optimal assignment that satisfies $M$.
+
+% A weighted subset $D\subseteq X$ is called an $\varepsilon$-coreset for fair \kMedian if for every $k$-center $C\subseteq \mathbb{R}^d$, $$
+% \cost(D,M,C)\in (1\pm \varepsilon)\cdot \cost(X,M,C).
+% $$
+
+% At first glance, fair \kMedian seems similar to capacitated \kMedian but is more complicated. Fortunately, \cite{NEURIPS2019_810dfbbe} suggested the following reduction from coresets for fair \kMedian to coresets for capacitated \kMedian.
+
+% \begin{lemma}[Variant of Theorem 4.2 in \cite{NEURIPS2019_810dfbbe}]
+% In a fair \kMedian instance $X$, let $\Gamma$ denote the number of distinct collections of groups that one point can belong to. Suppose there is an algorithm $\mathcal{A}$ that constructs a coreset of size $S=\mathrm{Poly}(k/\epsilon)$ for capacitated \kMedian on any subset. Then one can construct an $O(\Gamma S)$-sized coreset of $X$ for fair \kMedian by running algorithm $\mathcal{A}$ for $\Gamma$ times.
+% \end{lemma}
+
+
+
+\subsection{Our Results}
+
+\begin{theorem}[Coresets for Capacitated \kMedian] Given the input data set $X\subseteq\mathbb{R}^d$, there is an algorithm that constructs an $\varepsilon$-coreset of size for capacitated \kMedian with size $\tilde{O}(k^2/\epsilon^5)$ in linear time.
+\end{theorem}
+
+\begin{theorem}[Coresets for Fair \kMedian] Given the input data set $X\subseteq \mathbb{R}^d$ and multiple groups $G_1,...,G_l\subseteq X$. Let $\Gamma$ denote the number of distinct collections of groups that a single point $x\in X$ can belong to. Then there is an algorithm that constructs an $\varepsilon$-coreset of $X$ for fair \kMedian with size $\tilde{O}(\Gamma k^2/\epsilon^5)$.
+
+\end{theorem}
+
+\subsection{Technical Overview} \label{sec:tech}
+The state of the art coreset algorithms for unconstrained clustering sample points proportionate to their sensitivity scores, which, informally, corresponds to the maximum contribution of a point in any given clustering. 
+The sampled points are then weighted inversely proportionate to these sensitivity scores.
+When constructing coresets in high-dimensional Euclidean spaces, this is essentially the only technique available to us; geometric methods used in \cite{HuangJV19} and \cite{SSS19} invariably have an exponential dependency on the dimension.
+
+Unfortunately, using sensitivity sampling is very difficult to use when dealing with cardinality constraints. To see this, consider that a point set obtained non-uniform sampling does not, with good probability, exactly preserve the number of points. To see why this causes an issue, suppose we are given a point set that naturally falls into two clusters of equal size. The two clusters have an arbitrarily high distance from each other. If we subsample these points and over-estimate the number of points in one cluster by a small amount, then the surplus must be assigned to the other cluster. This incurs as a cost the distance between the two clusters which is arbitrarily large and thus the subsample cannot be a coreset.
+
+To overcome this issue, previous sampling-based algorithms \cite{BandyapadhyayFS21,Cohen-AddadL19} rely exclusively on uniform sampling. This is the only sampling distribution that always exactly preserves the number of points. 
+Here, we compute an initial solution $A$. For each center of $A$, we draw rings of exponentially increasing radii. For every ring, we now sample uniformly. 
+Unfortunately, this blows up the coreset size by the number of rings required to do this partitioning, which is at least $\log n$.
+
+We sidestep this issue by only using the rings for the points close to their respective centers, i.e. the points costing no more than $\varepsilon^{O(1)} \cdot \Delta_i$, where $\Delta_i$ is the average cost of points of cluster $i$ in the initial solution $A$.
+The points further away are dealt with separately, we now only focus on the points in these close rings.
+The standard way to proceed is to show that (1) the variance of the sample is bounded and (2) to enumerate all candidate solutions. 
+
+For (1), we observe that if the centers are roughly $\varepsilon^{-1}\cdot r$ away from any point in the ring, where $r$ is the radius of the ring, then it does not matter which points are being served by that center as the cost of these centers is always perserved up to a $(1\pm \varepsilon)$ factor via the triangle inequality. If the centers are at distance at most $\varepsilon^{-1}\cdot r$, then the variance of the sample is bounded.
+
+For (2), we simply enumerate over all solutions from scratch. The number of close points that can serve as candidate centers are roughly of the order $\exp(d)$, hence the number of candidate clusterings using these centers is at most of the order $\exp(kd)$. To conclude, we also bound the number of different cardinality assignments $w$. Naively, this number is ${n\choose k}$, which incurs a dependency on $\log n$. To avoid this dependency, we further bound the number of clustering assignments by observing that any close center of cardinality less than $\varepsilon^2/k n$ does not contribute much to the cost, and the contributions in cost between centers of cardinality $\varepsilon^2/k n$  and $n$ can be efficientyl discritized in powers of $(1+\varepsilon/k)$. Overall, this leads to the a coreset of size $\varepsilon^{-3} \log(\exp(kd)$, which, using recent dimension reduction techniques for coresets \cite{stoc,huang2020coresets}, can be improved to roughly $\tilde{O}(k\varepsilon^{-5})$.
+
+This leaves us with the points which we did not place into a ring, which we denote by the \emph{far} points. The far points are now simply sampled proportionate to their cost in $A$. This does not preserve the number of points, so we rescale the weights correspondingly in post processing.
+The analysis of the sampling procedure for the far points now also distinguishes between two cases. If the cost of the points is similar to $A$, the analysis is analogous to that of the ring case. If the points cost significantly more than in $A$, we use exchange arguments with the points in the inner rings. Specifically, we show that we can swap the assignment of any far point with a point in the interior rings. If this results in the far points having a cost similar to that in $A$, we are done. If this is not the case, then this means that all of the points in interior rings must have a large cost. Since the number of points in interior rings outnumber the far points, we can now simply charge to the cost of these points.
+
+
+% \chris{stop here}
+
+
+% Our algorithm adapts the framework of Chen \cite{C09}. Chen's framework first finds a good enough approximation $A$ for the input data set. Then for each cluster, points are partitioned into $O(\log n)$ rings with exponentially increasing radii and coresets will be constructed by uniform sampling for each ring. Following this framework, \cite{cohen2019fixed} and \cite{BandyapadhyayFS21} show how to design coresets for capacitated and fair \kMedian, of size proportional to $\log n$.
+
+% To avoid the dependence of $O(\log n)$, there are two technical challenges. First, in \cite{cohen2019fixed} and \cite{BandyapadhyayFS21}, even for a single ring,  coresets size are still are least $\Omega(\log n)$.  Secondly, there are $\Omega(\log n)$ many rings in all the above algorithms, thus a standard divide-and-union approach can not get rid of an $\log n$ factor. 
+
+% To resolve the first challenge, we provide a novel analysis for the uniform sampling in the single ring case. Our analysis is based on a careful discretization of the centers and capacities. Finally, we apply the recent terminal embedding \cite{narayanan2019optimal} and iterative size reduction \cite{braverman2021coresets} techniques to get rid of the dependence on the dimension $d$. See Section \ref{sec:basic} for more details.
+
+% To resolve the second challenge, we apply a novel modification in the framework. Instead of partitioning into $\Omega(\log n)$ rings, we only pay attention to the closest $O(\log (k/\varepsilon))$ rings. 
+% \label{sec:tech}. For the remaining points, we observe two important features: 1. Their weights at most $\poly(\varepsilon/k)$ fraction of all points; 2. They are at least $\poly(k/\varepsilon)$ far to the clustering centers. Based one these features, we can prove that a standard importance sampling on these far points suffices.
